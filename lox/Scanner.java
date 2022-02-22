@@ -18,21 +18,21 @@ class Scanner {
 
 	static {
 		keywords = new HashMap<>();
-		keywords.put("and",		 AND);
-		keywords.put("class",	 CLASS);
-		keywords.put("else",     ELSE);
-		keywords.put("for",		 FOR);
-		keywords.put("fun",		 FUN);
-		keywords.put("if",		 IF);
-		keywords.put("nil",		 NIL);
-		keywords.put("or",		 OR);
-		keywords.put("print",	 PRINT);
-		keywords.put("return",   RETURN);
-		keywords.put("super",	 SUPER);
-		keywords.put("this",	 THIS);
-		keywords.put("true",	 TRUE);
-		keywords.put("var",		 VAR);
-		keywords.put("while",    WHILE);
+		keywords.put("and", AND);
+		keywords.put("class", CLASS);
+		keywords.put("else", ELSE);
+		keywords.put("for", FOR);
+		keywords.put("fun", FUN);
+		keywords.put("if", IF);
+		keywords.put("nil", NIL);
+		keywords.put("or", OR);
+		keywords.put("print", PRINT);
+		keywords.put("return", RETURN);
+		keywords.put("super", SUPER);
+		keywords.put("this", THIS);
+		keywords.put("true", TRUE);
+		keywords.put("var", VAR);
+		keywords.put("while", WHILE);
 
 	}
 
@@ -100,7 +100,7 @@ class Scanner {
 				addToken(match('=') ? GREATER_EQUAL : GREATER);
 				break;
 			case '/':
-				if (match('=')) {
+				if (match('/')) {
 					// A comment goes until the end of the line.
 					while (peek() != '\n' && !isAtEnd()) {
 						advance();
@@ -129,10 +129,6 @@ class Scanner {
 		}
 	}
 
-	private char advance() {
-		return source.charAt(current++);
-	}
-
 	private boolean match(char expected) {
 		if (isAtEnd())
 			return false;
@@ -142,6 +138,10 @@ class Scanner {
 		current++;
 		return true;
 
+	}
+
+	private char advance() {
+		return source.charAt(current++);
 	}
 
 	private char peek() {
@@ -202,12 +202,14 @@ class Scanner {
 	}
 
 	private void identifier() {
-		while (isAlphaNumeric(peek())) advance();
+		while (isAlphaNumeric(peek()))
+			advance();
 
 		String text = source.substring(start, current);
 		TokenType type = keywords.get(text);
-		if (type == null) type = IDENTIFIER;
-	   addToken(type);
+		if (type == null)
+			type = IDENTIFIER;
+		addToken(type);
 	}
 
 	private boolean isAlpha(char c) {
