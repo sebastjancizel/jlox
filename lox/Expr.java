@@ -3,11 +3,22 @@ package lox;
 import java.util.List;
 
 public abstract class Expr {
+   interface Visitor<R> {
+	  R visitBinaryExpr(Binary expr);
+	  R visitGroupingExpr(Grouping expr);
+	  R visitLiteralExpr(Literal expr);
+	  R visitUnaryExpr(Unary expr);
+    }
  static class Binary extends Expr {
 	Binary(Expr left, Token operator, Expr right) {
 		this.left = left;
 		this.operator = operator;
 		this.right = right;
+	}
+
+	@Override
+    <R> R accept(Visitor<R> visitor) {
+ 		return visitor.visitBinaryExpr(this);
 	}
 
 	 final Expr left;
@@ -19,11 +30,21 @@ public abstract class Expr {
 		this.expression = expression;
 	}
 
+	@Override
+    <R> R accept(Visitor<R> visitor) {
+ 		return visitor.visitGroupingExpr(this);
+	}
+
 	 final Expr expression;
 }
  static class Literal extends Expr {
 	Literal(Object value) {
 		this.value = value;
+	}
+
+	@Override
+    <R> R accept(Visitor<R> visitor) {
+ 		return visitor.visitLiteralExpr(this);
 	}
 
 	 final Object value;
@@ -34,7 +55,23 @@ public abstract class Expr {
 		this.right = right;
 	}
 
+	@Override
+    <R> R accept(Visitor<R> visitor) {
+ 		return visitor.visitUnaryExpr(this);
+	}
+
 	 final Token operator;
 	 final Expr right;
 }
+
+	abstract <R> R accept(Visitor<R> visitor);
+	public static void main(String[] args) {
+		Expr expression = new Expr.Binary(
+			new Expr.Unary(new Token(TokenType.MINUS, "-", null, 1),
+				new Expr.Literal(123)),
+			new Token(TokenType.STAR, "*", null, 1),
+			new Expr.Grouping(new Expr.Literal(45.67)));
+
+		System.out.println(new AstPrinter().print(expression));
+	}
 }
