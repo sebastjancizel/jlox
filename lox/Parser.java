@@ -4,6 +4,9 @@ import java.util.List;
 import static lox.TokenType.*;
 
 public class Parser {
+
+	private static class ParseError extends RuntimeException {}
+
 	private final List<Token> tokens;
 	private int current=0;
 
@@ -13,6 +16,14 @@ public class Parser {
 
 	private Expr expression() {
 		return equality();
+	}
+
+	Expr parse() {
+		try {
+			return expression();
+		} catch (ParseError error) {
+			return null;
+		}
 	}
 
 	private Expr equality(){
@@ -89,6 +100,8 @@ public class Parser {
 			return new Expr.Grouping(expr);
 		}
 
+		throw error(peek(), "Expect expression.");
+
 	}
 
 	private boolean match(TokenType... types){
@@ -101,14 +114,10 @@ public class Parser {
 		return false;
 	}
 
+
 	private Token consume(TokenType type, String message) {
 		if (check(type)) return advance();
-		return error(peek(), message);
-	}
-
-	private ParseError error(Token token, String message) {
-		Lox.error(token, message);
-		return new ParseError();
+		throw error(peek(), message);
 	}
 
 
@@ -133,4 +142,31 @@ public class Parser {
 	private Token previous(){
 		return tokens.get(current - 1);
 	}
+
+	private ParseError error(Token token, String message) {
+		Lox.error(token, message);
+		return new ParseError();
+	}
+
+	private void synchronize(){
+		advance();
+		while (!isAtEnd()) {
+			if (previous().type == SEMICOLON) return;
+
+			switch (peek().type) {
+				case CLASS:
+				case FUN:
+				case VAR:
+				case FOR:
+				case IF:
+				case WHILE:
+				case PRINT:
+				case RETURN:
+					return;
+			}
+
+			advance();
+		}
+	}
+
 }
