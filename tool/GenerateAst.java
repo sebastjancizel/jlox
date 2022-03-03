@@ -18,6 +18,10 @@ public class GenerateAst {
 				"Grouping	: Expr expression",
 				"Literal	: Object value",
 				"Unary		: Token operator, Expr right"));
+
+		defineAst(outputDir, "Stmt", Arrays.asList(
+				"Expression 	:  Expr expression",
+				"Print 			:  Expr expression"));
 	}
 
 	private static void defineAst(String outputDir, String baseName, List<String> types) throws IOException {
@@ -53,9 +57,10 @@ public class GenerateAst {
 		// The visitor interface
 		writer.println("   interface Visitor<R> {");
 
-		for (String type: types){
+		for (String type : types) {
 			String typeName = type.split(":")[0].trim();
-			writer.println("	  R visit" + typeName + baseName + "(" + typeName + " " + baseName.toLowerCase() + ");");
+			writer.println(
+					"	  R visit" + typeName + baseName + "(" + typeName + " " + baseName.toLowerCase() + ");");
 
 		}
 		writer.println("    }");

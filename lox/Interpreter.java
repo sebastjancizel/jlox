@@ -1,36 +1,20 @@
 package lox;
 
-public class Interpreter implements Expr.Visitor<Object> {
+import java.util.List;
 
-	void interpret(Expr expression) {
+public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
+
+	void interpret(List<Stmt> statements) {
 		try {
-			Object value = evaluate(expression);
-			System.out.println(stringify(value));
+			for (Stmt statement : statements) {
+				execute(statement);
+			}
 		} catch (RuntimeError error) {
 			Lox.runtimeError(error);
 		}
 	}
 
-	@Override
-	public Object visitLiteralExpr(Expr.Literal expr) {
-		return expr.value;
-	}
-
-	@Override
-	public Object visitUnaryExpr(Expr.Unary expr) {
-		Object right = evaluate(expr.right);
-
-		switch (expr.operator.type) {
-			case BANG:
-				return !isTruthy(right);
-			case MINUS:
-				checkNumberOperand(expr.operator, right);
-				return -(double) right;
-		}
-
-		return null;
-	}
-
+	// Convenience functions
 	private void checkNumberOperand(Token operator, Object operand) {
 		if (operand instanceof Double)
 			return;
@@ -52,13 +36,76 @@ public class Interpreter implements Expr.Visitor<Object> {
 		return true;
 	}
 
+	private boolean isEqual(Object left, Object right) {
+		if (left == null && right == null)
+			return true;
+		if (left == null)
+			return false;
+
+		return left.equals(right);
+	}
+
+	private String stringify(Object object) {
+		if (object == null)
+			return "nil";
+		if (object instanceof Double) {
+			String text = object.toString();
+			if (text.endsWith(".0")) {
+				text = text.substring(0, text.length() - 2);
+			}
+			return text;
+		}
+		return object.toString();
+	}
+
+	private Object evaluate(Expr expr) {
+		return expr.accept(this);
+	}
+
+	private void execute(Stmt stmt) {
+		stmt.accept(this);
+	}
+
+	// Visitor overrides for statements
+
+	@Override
+	public Void visitExpressionStmt(Stmt.Expression stmt) {
+		evaluate(stmt.expression);
+		return null;
+	}
+
+	@Override
+	public Void visitPrintStmt(Stmt.Print stmt) {
+		Object value = evaluate(stmt.expression);
+		System.out.println(stringify(value));
+		return null;
+	}
+
+	// Visitor overrides for expressions
+
+	@Override
+	public Object visitLiteralExpr(Expr.Literal expr) {
+		return expr.value;
+	}
+
 	@Override
 	public Object visitGroupingExpr(Expr.Grouping expr) {
 		return evaluate(expr.expression);
 	}
 
-	private Object evaluate(Expr expr) {
-		return expr.accept(this);
+	@Override
+	public Object visitUnaryExpr(Expr.Unary expr) {
+		Object right = evaluate(expr.right);
+
+		switch (expr.operator.type) {
+			case BANG:
+				return !isTruthy(right);
+			case MINUS:
+				checkNumberOperand(expr.operator, right);
+				return -(double) right;
+		}
+
+		return null;
 	}
 
 	@Override
@@ -103,26 +150,4 @@ public class Interpreter implements Expr.Visitor<Object> {
 		}
 		return null;
 	}
-
-	private boolean isEqual(Object left, Object right) {
-		if (left == null && right == null)
-			return true;
-		if (left == null)
-			return false;
-
-		return left.equals(right);
-	}
-
-	private String stringify(Object object) {
-		if (object == null) return "nil";
-		if (object instanceof Double) {
-			String text = object.toString();
-			if (text.endsWith(".0")) {
-				text = text.substring(0, text.length() -2);
-			}
-			return text;
-		}
-		return object.toString();
-	}
-
 }
