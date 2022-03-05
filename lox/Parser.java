@@ -21,7 +21,8 @@ public class Parser {
 	}
 
 	private Stmt statement() {
-		if (match(PRINT)) return printStatement();
+		if (match(PRINT))
+			return printStatement();
 
 		return expressionStatement();
 	}
