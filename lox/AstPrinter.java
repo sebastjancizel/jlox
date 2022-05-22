@@ -33,6 +33,11 @@ class AstPrinter implements Expr.Visitor<String> {
 		return expr.name.lexeme;
 	}
 
+	@Override
+	public String visitAssignExpr(Expr.Assign expr) {
+		return parenthesize2("=", expr.name.lexeme, expr.value);
+	}
+
 	private String parenthesize(String name, Expr... exprs) {
 		StringBuilder builder = new StringBuilder();
 
@@ -45,6 +50,26 @@ class AstPrinter implements Expr.Visitor<String> {
 
 		return builder.toString();
 	}
+
+	private String parenthesize2(String name, Object... parts) {
+		StringBuilder builder = new StringBuilder();
+
+		builder.append("(").append(name);
+		transform(builder, parts);
+		builder.append(")");
+
+		return builder.toString();
+	}
+
+	private void transform(StringBuilder builder, Object... parts) {
+		for (Object part: parts) {
+			builder.append(" ");
+			if (part instanceof Expr) {
+				builder.append( ((Expr)part).accept(this));
+			}
+		}
+	}
+
 	public static void main(String[] args) {
 		Expr expression = new Expr.Binary(
 			new Expr.Unary(new Token(TokenType.MINUS, "-", null, 1),
